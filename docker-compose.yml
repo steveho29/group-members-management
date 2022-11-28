@@ -5,12 +5,13 @@ services:
     image: node:latest
     container_name: webapp_19127368
     volumes:
-      - ./frontend:/frontend
+      - ./frontend:/app
     ports:
       - 3000:3000
     command: >
       sh -c " 
-        tail -f /dev/null
+        cd /app &&
+        npm install &&
         HOST=0.0.0.0 npm start
       "
   server:
@@ -19,10 +20,18 @@ services:
     volumes:
       - ./backend:/app
     ports:
-      - 80:8000
+      - 80:80
     command: >
-      sh -c " 
-        tail -f /dev/null
+      sh -c "
+        cd /app &&
+        python -m venv .venv
+        . .venv/bin/activate &&
+        pip install --upgrade pip &&
+        pip install -r requirements.txt &&
+        cd server &&
+        python manage.py makemigrations && 
+        python manage.py migrate && 
+        python manage.py runserver 0.0.0.0:80
       "
     depends_on:
       db:
@@ -33,11 +42,11 @@ services:
     image: mysql:latest
     container_name: db-mysql
     volumes:
-      - ./.db/intrahub-check-service-db/mysql:/var/lib/mysql
+      - ./.db:/var/lib/mysql
     command: --default-authentication-plugin=mysql_native_password
     environment:
       - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=intrahub
+      - MYSQL_DATABASE=db
       - MYSQL_ROOT_HOST=%
       - MYSQL_HOST=localhost
 
