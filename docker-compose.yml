@@ -1,0 +1,49 @@
+iversion: '3.0'
+
+services:
+  webapp:
+    image: node:latest
+    container_name: webapp_19127368
+    volumes:
+      - ./frontend:/frontend
+    ports:
+      - 3000:3000
+    command: >
+      sh -c " 
+        tail -f /dev/null
+        HOST=0.0.0.0 npm start
+      "
+  server:
+    image: python:latest
+    container_name: server_19127368
+    volumes:
+      - ./backend:/app
+    ports:
+      - 80:8000
+    command: >
+      sh -c " 
+        tail -f /dev/null
+      "
+    depends_on:
+      db:
+        condition: service_healthy
+
+    restart: always
+  db:
+    image: mysql:latest
+    container_name: db-mysql
+    volumes:
+      - ./.db/intrahub-check-service-db/mysql:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=intrahub
+      - MYSQL_ROOT_HOST=%
+      - MYSQL_HOST=localhost
+
+    healthcheck:
+      test: mysqladmin ping
+      timeout: 20s
+      retries: 10
+
+    restart: always
