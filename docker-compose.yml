@@ -12,7 +12,8 @@ services:
       sh -c " 
         cd /app &&
         npm install &&
-        HOST=0.0.0.0 npm start
+        HOST=0.0.0.0 npm start &&
+        tail -f /dev/null
       "
   server:
     image: python:latest

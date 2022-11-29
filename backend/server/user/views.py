@@ -1,9 +1,7 @@
-from django.shortcuts import render
-
 from rest_framework import serializers
+from rest_framework import viewsets, status
 from .models import User
 from email.policy import default
-from rest_framework import viewsets, status
 from rest_framework import permissions
 
 from .models import User

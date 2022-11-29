@@ -25,17 +25,10 @@ from drf_spectacular.views import (
     SpectacularAPIView,
 )
 
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-    TokenVerifyView
-)
-
-
-
-from rest_framework.routers import DefaultRouter
-from user.urls import router as APIRouter
-
+from authjwt.google_auth import GoogleView
+from user.urls import router as UserRouter
+from django.conf import settings 
+from django.conf.urls.static import static  
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -44,5 +37,8 @@ urlpatterns = [
          name='api-docs'),
 
     path('api/auth/', include('authjwt.urls')),
-    path('api/user/', include(APIRouter.urls)),
-]
+
+    path('api/oauth/google', GoogleView.as_view(), name='google'),  # add path for google authentication
+
+    path('api/user/', include(UserRouter.urls)),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

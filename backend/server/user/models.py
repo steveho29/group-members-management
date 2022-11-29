@@ -7,6 +7,9 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.utils.translation import gettext_lazy as _
 import logging
 
+class SOCIAL_AUTH_PLATFORM(models.TextChoices):
+    NONE = 'NONE', _('NONE')
+    GOOGLE = 'GOOGLE', _('GOOGLE')
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password, **extra_fields):
@@ -48,13 +51,14 @@ class User(AbstractBaseUser):
     )
     
     first_name = models.TextField(max_length=20)
-    last_name = models.TextField(max_length=50)
-    date_of_birth = models.DateField()
+    last_name = models.TextField(max_length=50, null=True)
+    date_of_birth = models.DateField(null=True)
     date_joined = models.DateTimeField(auto_now_add=True)
-
+    avatar = models.ImageField(upload_to='images', null=True)
     is_admin = models.BooleanField(default=False)
     is_verified= models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    social_auth = models.CharField(max_length=20,choices=SOCIAL_AUTH_PLATFORM.choices, default=SOCIAL_AUTH_PLATFORM.NONE)
 
     REQUIRED_FIELDS = ['first_name', 'last_name',
                        'date_of_birth',]

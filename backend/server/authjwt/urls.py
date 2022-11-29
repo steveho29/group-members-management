@@ -25,6 +25,8 @@ class EmailTokenObtainSerializer(TokenObtainPairSerializer):
 
 class EmailTokenObtainPairView(TokenObtainPairView):
     serializer_class = EmailTokenObtainSerializer
+
+
     
     
 
