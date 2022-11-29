@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'drf_spectacular',
-    'api',
+    'user',
+    'authjwt',
     'corsheaders',
     'rest_framework_simplejwt',
     'rest_framework',
@@ -96,6 +97,7 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
+AUTH_USER_MODEL = 'user.User'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -113,11 +115,12 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 SIMPLE_JWT = {
-    # "USER_ID_FIELD": "_id",
-    # "USER_ID_CLAIM": "user_id",
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "id",
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     # "ROTATE_REFRESH_TOKENS": True,
+    'UPDATE_LAST_LOGIN': True,
 }
 
 REST_FRAMEWORK = {

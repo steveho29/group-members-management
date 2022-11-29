@@ -16,6 +16,33 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from django.contrib import admin
+from django.urls import include, path
+from rest_framework import routers
+from rest_framework import viewsets
+from drf_spectacular.views import (
+    SpectacularSwaggerView,
+    SpectacularAPIView,
+)
+
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    TokenVerifyView
+)
+
+
+
+from rest_framework.routers import DefaultRouter
+from user.urls import router as APIRouter
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/schema/', SpectacularAPIView.as_view(), name='api-schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='api-schema'),
+         name='api-docs'),
+
+    path('api/auth/', include('authjwt.urls')),
+    path('api/user/', include(APIRouter.urls)),
 ]
