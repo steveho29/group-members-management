@@ -25,7 +25,6 @@ from drf_spectacular.views import (
     SpectacularAPIView,
 )
 
-from authjwt.google_auth import GoogleView
 from user.urls import router as UserRouter
 from django.conf import settings 
 from django.conf.urls.static import static  
@@ -36,9 +35,7 @@ urlpatterns = [
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='api-schema'),
          name='api-docs'),
 
-    path('api/auth/', include('authjwt.urls')),
-
-    path('api/oauth/google', GoogleView.as_view(), name='google'),  # add path for google authentication
+    path('api/oauth/', include('authjwt.urls')),
 
     path('api/user/', include(UserRouter.urls)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,18 +1,13 @@
-from django.contrib.auth.hashers import make_password
-from rest_framework.utils import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
-import requests
-from rest_framework_simplejwt.tokens import RefreshToken
-from authjwt.urls import EmailTokenObtainSerializer
+from authjwt.email_auth import EmailTokenObtainSerializer
 from user.models import SOCIAL_AUTH_PLATFORM, User
-from user.views import CreateUserSerializer
 from django.contrib.auth.base_user import BaseUserManager
+import requests
 import logging
 
-class GoogleView(APIView):
+class GoogleAuthView(APIView):
     def post(self, request):
-        logging.getLogger().error(request.data) 
         payload = {'id_token': request.data.get("credential")}
         data = requests.get('https://oauth2.googleapis.com/tokeninfo', params=payload).json()
         
@@ -30,6 +25,7 @@ class GoogleView(APIView):
             user.set_password(BaseUserManager().make_random_password())
             user.email = data['email']
             user.social_auth = SOCIAL_AUTH_PLATFORM.GOOGLE
+            user.email_verified = True
             user.first_name = data.get('given_name')
             user.last_name = data.get('family_name')
             user.avatar = data.get('picture')

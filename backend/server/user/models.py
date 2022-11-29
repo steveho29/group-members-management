@@ -56,8 +56,8 @@ class User(AbstractBaseUser):
     date_joined = models.DateTimeField(auto_now_add=True)
     avatar = models.ImageField(upload_to='images', null=True)
     is_admin = models.BooleanField(default=False)
-    is_verified= models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    email_verified= models.BooleanField(default=False)
     social_auth = models.CharField(max_length=20,choices=SOCIAL_AUTH_PLATFORM.choices, default=SOCIAL_AUTH_PLATFORM.NONE)
 
     REQUIRED_FIELDS = ['first_name', 'last_name',

@@ -18,7 +18,7 @@ class UserSerializer(serializers.ModelSerializer):
 class UpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        exclude = ['password', 'is_admin', 'is_verified']
+        exclude = ['password', 'is_admin', 'email_verified']
     
     def to_representation(self, instance):
         return UserSerializer(instance=instance).data
@@ -27,7 +27,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = '__all__'
-        extra_kwargs = {'is_admin': {'read_only': True}, 'is_active': {'read_only': True}, 'last_login': {'read_only': True}, 'is_verified': {'read_only': True}, 'password': {'write_only': True},}
+        extra_kwargs = {'is_admin': {'read_only': True}, 'is_active': {'read_only': True}, 'last_login': {'read_only': True}, 'email_verified': {'read_only': True}, 'password': {'write_only': True},}
 
     def create(self, validated_data):
         password = validated_data.pop('password')
