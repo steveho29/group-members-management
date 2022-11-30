@@ -40,11 +40,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'drf_spectacular',
-    'user',
-    'authjwt',
     'corsheaders',
     'rest_framework_simplejwt',
     'rest_framework',
+    
+    'user',
+    'group',
+    'authjwt',
 ]
 
 
