@@ -26,6 +26,8 @@ from drf_spectacular.views import (
 )
 
 from user.urls import router as UserRouter
+from group.urls import router as GroupRouter
+
 from django.conf import settings 
 from django.conf.urls.static import static  
 
@@ -38,4 +40,5 @@ urlpatterns = [
     path('api/oauth/', include('authjwt.urls')),
 
     path('api/user/', include(UserRouter.urls)),
+    path('api/group/', include(GroupRouter.urls))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

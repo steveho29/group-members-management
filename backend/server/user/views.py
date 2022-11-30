@@ -17,12 +17,12 @@ import logging
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        exclude = ['password']
+        exclude = ['password', 'email_code']
 
 class UpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        exclude = ['password', 'is_admin', 'email_verified']
+        exclude = ['password', 'is_admin', 'is_active', 'email_verified', 'email_code']
     
     def to_representation(self, instance):
         return UserSerializer(instance=instance).data
@@ -30,7 +30,7 @@ class UpdateUserSerializer(serializers.ModelSerializer):
 class CreateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = '__all__'
+        exclude = ['email_code']
         extra_kwargs = {'is_admin': {'read_only': True}, 'is_active': {'read_only': True}, 'last_login': {'read_only': True}, 'email_verified': {'read_only': True}, 'password': {'write_only': True},}
 
     def create(self, validated_data):
@@ -97,7 +97,7 @@ class UserViewSet(viewsets.ModelViewSet):
                     return UserSerializer
 
     @action(methods=['post'], detail=True, url_path='reset-password')
-    def reset_password(self, request, pk):
+    def reset_password(self, request, *args, **kwargs):
         password = request.data.pop('password')
         user = self.get_object()
         user.set_password(password)
@@ -120,10 +120,14 @@ class UserViewSet(viewsets.ModelViewSet):
     def verify_email(self, request, pk):
         user = self.get_object()
         code = request.GET.get('email_code')
+        if (user.email_code != code):
+            return Response({'error': 'Invalid Verified Code'}, status=status.HTTP_400_BAD_REQUEST)
         user.email_verified = True
         user.email_code = None
         user.save()
-        logging.getLogger().error(user.email)
         return Response({'email_verified': user.email_verified})
 
 
+    def update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return super().update(request, *args, **kwargs)
