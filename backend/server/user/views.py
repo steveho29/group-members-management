@@ -108,9 +108,10 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(methods=['post'], detail=False, url_path='send-verify-email')
     def send_verify_email(self, request):
         user = request.user
-        user.email_code = BaseUserManager().make_random_password()
+        user.email_code = BaseUserManager().make_random_password(length=50)
         user.save()
-        link = 'http://' + request.get_host() + '/api/user/' + f'{user.id}/verify-email/?email_code={user.email_code}'
+        link = 'https://' if request.is_secure() else 'http://'
+        link += request.get_host() + '/api/user/' + f'{user.id}/verify-email/?email_code={user.email_code}'
         logging.getLogger().error(link)
         send_verify_email(request.user, link)
         return Response({'msg': f'Verification Email has been sent to {user.email}'})

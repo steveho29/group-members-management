@@ -1,7 +1,6 @@
 from rest_framework import routers
-from .views import GroupViewSet, MemberViewSet
+from .views import GroupViewSet
 
 
 router = routers.DefaultRouter()
 router.register('', GroupViewSet)
-# router.register('member', MemberViewSet)

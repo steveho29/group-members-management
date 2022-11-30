@@ -15,6 +15,7 @@ class Member(models.Model):
     group = models.ForeignKey(
         to=Group, related_name='members', on_delete=models.CASCADE)
     joined_at = models.DateTimeField(auto_now_add=True)
-    
+    is_active = models.BooleanField(default=False)
+    invite_code = models.CharField(max_length=100, null=True) 
     class Meta:
         unique_together = (('user', 'group'))
