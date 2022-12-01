@@ -16,6 +16,13 @@ class GroupSerializer(serializers.ModelSerializer):
         fields= "__all__"
 
 
+class CreateGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Group
+        fields= "__all__"
+        extra_kwargs = {'co_owner': {'read_only': True}}
+
+
 class MemberSerializer(serializers.ModelSerializer):
     user = UserSerializer()
     # group = GroupSerializer()
@@ -62,6 +69,8 @@ class GroupViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         match self.action:
+            case 'create':
+                return CreateGroupSerializer
             case 'list':
                 return ListGroupSerializer
             case 'retrieve':
@@ -168,3 +177,10 @@ class GroupViewSet(viewsets.ModelViewSet):
         except Member.DoesNotExist:
             return Response(data={'error': 'Member does not in this group'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(data={'error': f'Member kicked!'}, status=status.HTTP_204_NO_CONTENT)
+
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        request.data.owner = request.user
+        return super().create(request, *args, **kwargs)

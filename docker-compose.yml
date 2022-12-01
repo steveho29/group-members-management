@@ -12,7 +12,6 @@ services:
       sh -c " 
         cd /app &&
         npm install &&
-        HOST=0.0.0.0 npm start &&
         tail -f /dev/null
       "
   server:
@@ -21,7 +20,7 @@ services:
     volumes:
       - ./backend:/app
     ports:
-      - 80:80
+      - 2910:2910
     command: >
       sh -c "
         cd /app &&
