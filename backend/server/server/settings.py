@@ -11,9 +11,13 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 from datetime import timedelta
 import os
+import environ
 
+env = environ.Env()
+# reading .env file
+environ.Env.read_env()
 from pathlib import Path
-
+import logging
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -22,10 +26,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-fg)4$6k-r3_z(dw61m8(ep^@^8sk6qfz2^fb^&)66uksufswe1'
+SECRET_KEY = env('SECRET_KEY') 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False 
 
 ALLOWED_HOSTS = ['*']
 
@@ -55,7 +59,7 @@ MEDIA_URL = '/media/'
   
 # Path where media is stored  
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')  
-
+logging.getLogger().error(MEDIA_ROOT)
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
 
@@ -68,7 +72,35 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    'access-control'
+    "Access-Control-Allow-Origin",
+    "access-control-allow-origin",
+    "Access-Control-Allow-Headers",
+    'Authorization',
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "ngrok-skip-browser-warning",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+    "withcredentials"
+]
 
 ROOT_URLCONF = 'server.urls'
 
@@ -89,7 +121,13 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'server.wsgi.application'
-WEBHOST = 'http://localhost:3002'
+WEB_HOST = env('WEB_HOST')
+SERVER_HOST = env('SERVER_HOST')
+
+EMAIL_HOST = env('EMAIL_HOST')
+EMAIL_PORT = env('EMAIL_PORT')
+EMAIL_HOST_USER =  env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD') 
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
@@ -97,11 +135,11 @@ WEBHOST = 'http://localhost:3002'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'db',
-        'USER': 'root',
-        'PASSWORD': 'root',
-        'HOST': 'db-mysql',
-        'PORT': '3306',
+        'NAME': env('DATABASE_NAME'),
+        'USER': env('DATABASE_USER'),
+        'PASSWORD': env('DATABASE_PASSWORD'),
+        'HOST': env('DATABASE_HOST'),
+        'PORT': env('DATABASE_PORT'),
     }
 }
 

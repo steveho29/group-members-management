@@ -156,8 +156,9 @@ class GroupViewSet(viewsets.ModelViewSet):
         member.joined_at = None
         member.save()
 
-        link = 'https://' if request.is_secure() else 'http://'
-        link += request.get_host() + '/api/group/' + f'{group.id}/join?user_id={user.id}&invite_code={member.invite_code}'
+        # link = 'https://' if request.is_secure() else 'http://'
+        # link += request.get_host() + '/api/group/' + f'{group.id}/join?user_id={user.id}&invite_code={member.invite_code}'
+        link = settings.SERVER_HOST + '/api/group/' + f'{group.id}/join?user_id={user.id}&invite_code={member.invite_code}'
         send_invite_email(email, link, group.name)
         return Response(data={'msg': f'Email Invitation has been sent to {email}'}, status=status.HTTP_200_OK)
 
@@ -177,7 +178,7 @@ class GroupViewSet(viewsets.ModelViewSet):
         member.joined_at = timezone.now()
         member.save()
         # return Response({'code': invite_code, 'groupId': pk})
-        return HttpResponseRedirect(redirect_to=settings.WEBHOST)
+        return HttpResponseRedirect(redirect_to=settings.WEB_HOST)
         
     @action(methods=['DELETE'], detail=True)
     def kick(self, request, **kwargs):

@@ -112,9 +112,7 @@ class UserViewSet(viewsets.ModelViewSet):
         user = request.user
         user.email_code = BaseUserManager().make_random_password(length=50)
         user.save()
-        link = 'https://' if request.is_secure() else 'http://'
-        link += request.get_host() + '/api/user/' + f'{user.id}/verify-email/?email_code={user.email_code}'
-        logging.getLogger().error(link)
+        link = settings.SERVER_HOST + '/api/user/' + f'{user.id}/verify-email/?email_code={user.email_code}'
         send_verify_email(request.user, link)
         return Response({'msg': f'Verification Email has been sent to {user.email}'})
 
@@ -128,10 +126,11 @@ class UserViewSet(viewsets.ModelViewSet):
         user.email_verified = True
         user.email_code = None
         user.save()
-        return HttpResponseRedirect(redirect_to=settings.WEBHOST)
-        return Response({'email_verified': user.email_verified})
+        return HttpResponseRedirect(redirect_to=settings.WEB_HOST)
 
 
     def update(self, request, *args, **kwargs):
         kwargs['partial'] = True
         return super().update(request, *args, **kwargs)
+    
+    

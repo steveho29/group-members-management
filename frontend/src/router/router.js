@@ -1,5 +1,5 @@
 import React from "react";
-import { Route, BrowserRouter as Router, Switch } from "react-router-dom";
+import { Route, BrowserRouter as Router, Switch, HashRouter } from "react-router-dom";
 
 import {
   Login,
@@ -29,7 +29,7 @@ import { ProtectedRoute } from "./ProtectedRoute";
 class RouterComponent extends React.Component {
   render() {
     return (
-      <Router basename={`/`}>
+      <HashRouter>
         <div className="main-wrapper">
           {/* <Route render={(props) => <Header {...props} />} /> */}
 
@@ -46,7 +46,7 @@ class RouterComponent extends React.Component {
           </Switch>
           <Route render={(props) => <Footer {...props} />} />
         </div>
-      </Router>
+      </HashRouter>
     );
   }
 }

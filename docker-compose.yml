@@ -12,6 +12,7 @@ services:
       sh -c " 
         cd /app &&
         npm install &&
+        npm start &&
         tail -f /dev/null
       "
   server:
