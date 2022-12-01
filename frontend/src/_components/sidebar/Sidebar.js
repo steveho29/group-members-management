@@ -27,7 +27,7 @@ const Sidebar = () => {
             {/* Profile Sidebar */}
             <div className="profile-sidebar">
                 <div className="widget-profile pro-widget-content">
-                    <UserProfile name={user.first_name + ' ' + user.last_name} email={user.email} />
+                    <UserProfile name={user.first_name ?? '' + ' ' + user.last_name ?? ''} email={user.email} />
                 </div>
                 <div className="dashboard-widget">
                     <nav className="dashboard-menu">

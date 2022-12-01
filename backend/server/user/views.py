@@ -9,6 +9,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from user.mail import send_verify_email
+from django.http import HttpResponseRedirect
+from django.conf import settings
 from django.contrib.auth.base_user import BaseUserManager
 
 import logging
@@ -126,6 +128,7 @@ class UserViewSet(viewsets.ModelViewSet):
         user.email_verified = True
         user.email_code = None
         user.save()
+        return HttpResponseRedirect(redirect_to=settings.WEBHOST)
         return Response({'email_verified': user.email_verified})
 
 

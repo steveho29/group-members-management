@@ -38,7 +38,7 @@ const getJoinedGroups = createAsyncThunk(
     thunkAPI.dispatch(setIsLoading(true));
     try {
       const { data } = await axiosAPI.get(`${modulePrefix}/?user=${user_id}`);
-      return data.results;
+      return data;
     } catch (error) {
       var errorMsg = "";
       if (error.response?.data) {

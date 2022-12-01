@@ -36,6 +36,33 @@ const login = createAsyncThunk(
   }
 );
 
+const signup = createAsyncThunk(
+  "signup",
+  async ( data, thunkAPI) => {
+    thunkAPI.dispatch(setIsLoading(true));
+    try {
+      await axiosAPI.post(`user/`, data);
+      thunkAPI.dispatch(
+        toastifyAction.setMessage({ message: "Register Successfully", type: "success" })
+      );
+      return {};
+    } catch (error) {
+      var errorMsg = "";
+      if (error.response?.data) {
+        const { email, password, detail, message } = error.response.data;
+        errorMsg = email || password || detail || message;
+      } else errorMsg = error.message || error.msg || error.error || error;
+      thunkAPI.dispatch(
+        toastifyAction.setMessage({
+          message: errorMsg.toString(),
+          type: "error",
+        })
+      );
+      return thunkAPI.rejectWithValue();
+    }
+  }
+);
+
 const refresh = createAsyncThunk(
   "refresh",
   async (data, thunkAPI) => {
@@ -103,4 +130,4 @@ export const userActions = authSlice.actions;
 
 const { logout, loadAuth } = userActions;
 
-export { login, logout, loadAuth, refresh };
+export { login, logout, loadAuth, refresh, signup };

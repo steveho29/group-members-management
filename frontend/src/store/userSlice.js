@@ -124,6 +124,35 @@ const updateUser = createAsyncThunk(
   }
 );
 
+
+const verifyEmail = createAsyncThunk(
+  "verifyEmail",
+  async ({}, thunkAPI) => {
+    thunkAPI.dispatch(setIsLoading(true));
+    try {
+      const {data} = await axiosAPI.post(`user/send-verify-email/`, {});
+      thunkAPI.dispatch(
+        toastifyAction.setMessage({ message: data.msg, type: "success" })
+      );
+      return "";
+    } catch (error) {
+      var errorMsg = "";
+      if (error.response?.data) {
+        const { detail, message } = error.response.data;
+        errorMsg = detail || message;
+      } else errorMsg = error.message || error.msg || error.error || error;
+      thunkAPI.dispatch(
+        toastifyAction.setMessage({
+          message: errorMsg.toString(),
+          type: "error",
+        })
+      );
+      return thunkAPI.rejectWithValue();
+    }
+  }
+);
+
+
 const initialState = { isAdmin: false, userLst: {}, user: {}};
 
 
@@ -147,4 +176,4 @@ export const userSlice = createSlice({
 
 export const userActions = userSlice.actions;
 
-export { getUserLst, addUser, updateUser, getUserInfo, };
+export { getUserLst, addUser, updateUser, getUserInfo, verifyEmail};

@@ -9,17 +9,12 @@ import { Formik } from 'formik';
 import { ReactTable } from '../../_components/_helpers/ReactTable-2';
 
 import { appDispatch } from "../../store/appDispatch";
-// import { getgroupList, getProjectTasks, getTaskContributors, removeTaskContributor, addTaskContributor, addProjectTask, updateProjectTask } from '../../store/groupSlice';
-import { getUserInfo, updateUser } from "../../store/userSlice";
+import { getUserInfo, updateUser, verifyEmail } from "../../store/userSlice";
 import { axiosAPI } from "../../api/api";
 import axios from 'axios';
 
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
+import { toastifyAction } from "../../store/toastifySlice";
+import { toast } from "react-toastify";
 
 const UserProfile = () => {
     let { groups } = useSelector(state => state.group);
@@ -34,6 +29,7 @@ const UserProfile = () => {
     const accessToken = localStorage.getItem("accessToken");
     const decoded = jwt_decode(accessToken);
     const dispatch = useDispatch();
+    const toastify = useSelector((state) => state.toastify);
 
     useEffect(() => {
         const func = async () => {
@@ -114,9 +110,15 @@ const UserProfile = () => {
     const handleClose = () => {
         setOpen(false);
     }
+    
+    useEffect(() => {
+        const { message, type } = toastify;
+        if (!message) return;
+        toast(message, { type: type });
+        dispatch(toastifyAction.clearMessage());
+    }, [toastify]);
 
 
-  
 
     return (
         <div>
@@ -265,13 +267,14 @@ const UserProfile = () => {
                                                     </div> */}
                                                     <div className="col-12 col-md-6">
                                                         <div className="form-group">
-                                                            <label>Email Verified</label>
+                                                            <label>Email Verified {!user.email_verified ? <a href="#" onClick={() => appDispatch(dispatch, verifyEmail({}))}>| Verify Now</a> : null}</label>
                                                             <input
                                                                 type='text'
                                                                 value={user.email_verified}
                                                                 className="form-control"
                                                                 readOnly={true}
                                                             />
+
                                                         </div>
                                                     </div>
                                                     <div className="submit-section text-center mb-3">
@@ -285,7 +288,7 @@ const UserProfile = () => {
                                     </div>
                                 </div>
                             </Tab>
-                            <Tab eventKey="project" title="Project">
+                            <Tab eventKey="groups" title="Groups">
                                 <div className="card card-table mb-0">
                                     <div className="card-body">
                                         <div className="table-responsive">
@@ -298,7 +301,7 @@ const UserProfile = () => {
                                     </div>
                                 </div>
                             </Tab>
-                            
+
                         </Tabs>
                     </div>
                 </div>

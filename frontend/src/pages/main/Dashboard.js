@@ -27,7 +27,7 @@ import {useHistory} from 'react-router-dom'
 import { GroupForm } from './Request';
 const Dashboard = () => {
     let { groups, joinedGroups } = useSelector(state => state.group);
-    let { otherGroups } = useState([])
+    const [otherGroups, setOtherGroups ] = useState([])
     let { user } = useSelector(state => state.user);
 
     const [key, setKey] = useState("owned");
@@ -46,13 +46,14 @@ const Dashboard = () => {
     useEffect(() => {
         const func = async () => {
             await appDispatch(dispatch, getAllGroups());
-            await appDispatch(dispatch, getJoinedGroups())
+            if (user.id)
+                await appDispatch(dispatch, getJoinedGroups({user_id: user.id}))
         }
         func();
-    }, []);
+    }, [user]);
 
     useEffect(() => {
-        otherGroups = groups?.filter(group => group.owner.id != user?.id && !joinedGroups?.some(g => g.id == group.id))
+        setOtherGroups(groups?.filter(group => group.owner.id != user?.id && !(joinedGroups?.some(g => g.group == group.id))))
     }, [groups, joinedGroups])
 
     const onChangeTab = (key) => {
@@ -116,7 +117,7 @@ const Dashboard = () => {
 
                                 <Tab eventKey="joined" title="Joined Groups">
                                     <Grid container spacing={2}>
-                                        {joinedGroups?.map(group => <Grid item><GroupItem key={group.id} ownerAvatar={group.owner.avatar} groupAvatar={group.avatar} title={group.name} onClick={() => { }}></GroupItem></Grid>)}
+                                        {joinedGroups && groups && groups?.filter(group => joinedGroups?.some(g => g.group == group.id))?.map(group => <Grid item><GroupItem key={group.id} ownerAvatar={group.owner.avatar} groupAvatar={group.avatar} title={group.name} onClick={() => { }}></GroupItem></Grid>)}
                                     </Grid>
                                 </Tab>
                                 <Tab eventKey="all" title="Other Groups">

@@ -33,7 +33,12 @@ class MemberSerializer(serializers.ModelSerializer):
         model=Member
         exclude = ['group']
 
-
+class ListMemberSerializer(serializers.ModelSerializer):
+    # user = UserSerializer()
+    # group = GroupSerializer()
+    class Meta:
+        model=Member
+        exclude = []
 
 class InviteMemberSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -106,7 +111,7 @@ class GroupViewSet(viewsets.ModelViewSet):
         userId = request.query_params.get('user')
         if userId:
             try:
-                serializer = MemberSerializer(
+                serializer = ListMemberSerializer(
                     instance=Member.objects.filter(user=userId), many=True)
                 return Response(data=serializer.data)
             except Exception as e:
