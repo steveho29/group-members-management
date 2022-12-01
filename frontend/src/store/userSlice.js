@@ -103,6 +103,9 @@ const updateUser = createAsyncThunk(
     thunkAPI.dispatch(setIsLoading(true));
     try {
       await axiosAPI.put(`user/${data.id}/`, data);
+      thunkAPI.dispatch(
+        toastifyAction.setMessage({ message: "Update Successfully", type: "success" })
+      );
       return "";
     } catch (error) {
       var errorMsg = "";

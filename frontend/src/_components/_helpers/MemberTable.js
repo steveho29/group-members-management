@@ -2,7 +2,9 @@ import { Avatar } from '@mui/material'
 import React from 'react'
 import { useTable } from 'react-table'
 
-export function ReactTable({ columns, data, onRowClick, onKick, disable: Disable = false, disableField: DisableField = "is_active" }) {
+import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
+import DeleteIcon from '@mui/icons-material/Delete';
+export function ReactTable({group, columns, data, onRowClick, isOwner, onKick, onAssign , disable: Disable = false, disableField: DisableField = "is_active" }) {
     // Use the state and functions returned from useTable to build your UI
     const {
         getTableProps,
@@ -25,8 +27,7 @@ export function ReactTable({ columns, data, onRowClick, onKick, disable: Disable
                         {headerGroup.headers.map(column => (
                             <th {...column.getHeaderProps()}>{column.render('Header')}</th>
                         ))}
-
-                        <th></th>
+                        <th>Role</th>
                     </tr>
                 ))}
             </thead>
@@ -44,7 +45,9 @@ export function ReactTable({ columns, data, onRowClick, onKick, disable: Disable
                                     {row.original[DisableField] ? "Actived" : "Disabled"}
                                 </div>
                             </td> : ""}
-                            
+                            <td>{group?.owner?.id == data[i].user.id ? 'Owner' : (group?.co_owner?.id == data[i].user.id ? 'Co Owner' : (data[i].is_active ? 'Member' : 'Invited'))}</td>
+                            <td><button onClick={() => onKick({userId: data[i].id})}><DeleteIcon></DeleteIcon></button></td>
+                            <td>{data[i].is_active ? <button onClick={() => onAssign({userId: data[i].user.id})}><SupervisorAccountIcon /></button> : null }</td>
                         </tr>
                     )
                 })}

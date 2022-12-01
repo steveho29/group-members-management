@@ -3,6 +3,7 @@ import { Route, BrowserRouter as Router, Switch } from "react-router-dom";
 
 import {
   Login,
+  Register,
   Dashboard,
   ITSupportRequest,
   UserProfile,
@@ -34,12 +35,13 @@ class RouterComponent extends React.Component {
 
           <Switch>
             <ProtectedRoute exact path="/" component={Redirect} />
-            <ProtectedRoute path="/dashboard" component={ITSupportRequest} />
+            <ProtectedRoute path="/dashboard" component={Dashboard} />
             <ProtectedRoute path="/group/:id" component={GroupDetail} />
             {/* <ProtectedRoute path="/it-support-request" component={ITSupportRequest} /> */}
             <ProtectedRoute path="/user-profile" component={UserProfile} />
             <ProtectedRoute path="/logout" component={Logout} />
             <Route path="/login" component={Login} />
+            <Route path="/register" component={Register} />
             <Route path="*" component={Redirect} />
           </Switch>
           <Route render={(props) => <Footer {...props} />} />

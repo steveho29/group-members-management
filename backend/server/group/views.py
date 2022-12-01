@@ -9,6 +9,9 @@ from group.models import Group, Member
 from user.models import User
 from user.views import UserSerializer
 from django.contrib.auth.base_user import BaseUserManager
+from django.utils import timezone
+from user.mail import send_invite_email
+from django.conf import settings
 # Create your views here.
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
@@ -90,8 +93,8 @@ class GroupViewSet(viewsets.ModelViewSet):
                 return [IsOwnerOrAdmin()]
             case 'detele':
                 return [IsOwnerOrAdmin()]
-            case 'invite':
-                return [IsOwnerOrAdmin()]
+            # case 'invite':
+            #     return [IsOwnerOrAdmin()]
             case 'join':
                 return []
             case 'kick':
@@ -141,14 +144,16 @@ class GroupViewSet(viewsets.ModelViewSet):
         member, isNew = Member.objects.get_or_create(user=user, group=group)
         if member.is_active:
             return Response(data={'error': f'Already in {group.name}'}, status=status.HTTP_400_BAD_REQUEST)
-        if not isNew:
-            return Response(data={'error': f'Already invited to {group.name}'}, status=status.HTTP_400_BAD_REQUEST)
+        # if not isNew:
+        #     return Response(data={'error': f'Already invited to {group.name}'}, status=status.HTTP_400_BAD_REQUEST)
         member.invite_code = BaseUserManager().make_random_password(length=50)
+        member.is_active = False
+        member.joined_at = None
         member.save()
 
         link = 'https://' if request.is_secure() else 'http://'
         link += request.get_host() + '/api/group/' + f'{group.id}/join?user_id={user.id}&invite_code={member.invite_code}'
-        logging.getLogger().error(link)
+        send_invite_email(email, link, group.name)
         return Response(data={'msg': f'Email Invitation has been sent to {email}'}, status=status.HTTP_200_OK)
 
 
@@ -164,23 +169,28 @@ class GroupViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Oops! Invalid Invitation'}, status=status.HTTP_400_BAD_REQUEST)
         member.is_active = True
         member.invite_code = None
+        member.joined_at = timezone.now()
         member.save()
-        return Response({'code': invite_code, 'groupId': pk})
-        return HttpResponseRedirect(redirect_to='https://google.com')
+        # return Response({'code': invite_code, 'groupId': pk})
+        return HttpResponseRedirect(redirect_to=settings.WEBHOST)
         
-    @action(methods=['POST'], detail=True)
+    @action(methods=['DELETE'], detail=True)
     def kick(self, request, **kwargs):
         group = self.get_object()
-        user = request.data.get('user')
+        userId = request.GET.get('user')
+        
         try:
-            Member.objects.get(user=user, group=group).delete()
+            member = Member.objects.get(id=userId)
+            if group.co_owner and group.co_owner.id == member.user.id:
+                group.co_owner = None
+                group.save()
+            member.delete()
         except Member.DoesNotExist:
             return Response(data={'error': 'Member does not in this group'}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(data={'error': f'Member kicked!'}, status=status.HTTP_204_NO_CONTENT)
+        return Response(data={'msg': f'Member kicked!'}, status=status.HTTP_204_NO_CONTENT)
 
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
 
-    def create(self, request, *args, **kwargs):
-        request.data.owner = request.user
-        return super().create(request, *args, **kwargs)
+
+

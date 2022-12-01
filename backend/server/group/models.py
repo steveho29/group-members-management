@@ -14,7 +14,7 @@ class Member(models.Model):
     user = models.ForeignKey(to=User, related_name='joined_groups', on_delete=models.CASCADE)
     group = models.ForeignKey(
         to=Group, related_name='members', on_delete=models.CASCADE)
-    joined_at = models.DateTimeField(auto_now_add=True)
+    joined_at = models.DateTimeField( null=True)
     is_active = models.BooleanField(default=False)
     invite_code = models.CharField(max_length=100, null=True) 
     class Meta:

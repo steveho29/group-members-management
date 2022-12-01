@@ -6,123 +6,90 @@ import { useState, useEffect } from 'react';
 import { Tabs, Tab } from "react-bootstrap";
 import { Formik } from 'formik';
 
-import { ReactTable } from '../../_components/_helpers/ReactTable-2';
+import { ReactTable } from '../../_components/_helpers/MemberTable';
 
 import { appDispatch } from "../../store/appDispatch";
 // import { getgroupList, getProjectTasks, getTaskContributors, removeTaskContributor, addTaskContributor, addProjectTask, updateProjectTask } from '../../store/groupSlice';
 import { getUserInfo, updateUser } from "../../store/userSlice";
 import { axiosAPI } from "../../api/api";
 import axios from 'axios';
+import { useParams } from "react-router-dom";
 
+import { toastifyAction } from "../../store/toastifySlice";
+import { toast } from "react-toastify";
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import { inviteMember, kickMember, updateGroup, getAllGroups } from '../../store/groupSlice';
 
 const GroupDetail = () => {
     let { groups } = useSelector(state => state.group);
     let { user } = useSelector(state => state.user);
-    const [key, setKey] = useState("profile");
-    const [open, setOpen] = useState(false);
-    const [openCreateTask, setOpenCreateTask] = useState(false);
-    const [project, setProject] = useState({});
-    const [task, setTask] = useState({});
-    const [userInTask, setUserInTask] = useState(false);
-    const [taskContributor, setTaskContributor] = useState([]);
+    const [key, setKey] = useState("members");
     const accessToken = localStorage.getItem("accessToken");
+    const toastify = useSelector((state) => state.toastify);
     const decoded = jwt_decode(accessToken);
     const dispatch = useDispatch();
-
+    const { id } = useParams()
+    const [group, setGroup] = useState(null)
+    const [onShow, setShow] = useState(false);
     useEffect(() => {
         const func = async () => {
-            // await appDispatch(dispatch, getgroupList({ id_emp: decoded.id }));
-
+            setGroup(groups?.filter(group => group.id == id)[0])
         }
         func();
-    }, []);
+    }, [groups]);
 
     const onChangeTab = (key) => {
-        if (key !== "task")
-            setProject({});
     }
 
     const columns = [
         {
-            Header: 'Name',
-            accessor: 'name'
+            Header: 'First Name',
+            accessor: 'user.first_name'
         },
         {
-            Header: 'Description',
-            accessor: 'description'
+            Header: 'Last Name',
+            accessor: 'user.last_name'
         },
         {
-            Header: 'Owner',
-            accessor: 'owner.email'
+            Header: 'Email',
+            accessor: 'user.email'
         },
         {
-            Header: 'Co Owner',
-            accessor: 'co_owner.email'
-        }
+            Header: 'Joined At',
+            accessor: 'joined_at'
+        },
     ];
 
-    const taskColumns = [
-        {
-            Header: 'Name',
-            accessor: 'name'
-        },
-        {
-            Header: 'Started Date',
-            accessor: 'start_date'
-        },
-        {
-            Header: 'Ended Date',
-            accessor: 'end_date'
-        },
-        {
-            Header: 'Completed Date',
-            accessor: 'completed_day'
-        }
-    ];
 
-    const userColumns = [
-        {
-            Header: 'Name',
-            accessor: a => a.first_name + ' ' + a.last_name
-        },
-        {
-            Header: 'Position',
-            accessor: 'position'
-        },
-        {
-            Header: 'Level',
-            accessor: 'level'
-        }
-    ];
+    const onClick = () => {
+        setShow(!onShow);
+    }
+    useEffect(() => {
+        const { message, type } = toastify;
+        if (!message) return;
+        toast(message, { type: type });
+        dispatch(toastifyAction.clearMessage());
+    }, [toastify]);
 
-    const onProjectClick = (value) => {
-        const func = async () => {
-            // await appDispatch(dispatch, getProjectTasks({ project_id: value.project.id }));
-            console.log(value)
-            setProject(value.project);
-            setKey("task");
-        }
-        func();
+    const onKick = async ({userId}) => {
+        await appDispatch(dispatch, kickMember({groupId: id, id: userId}))
+        await appDispatch(dispatch, getAllGroups())
     }
 
-    const handleClose = () => {
-        setOpen(false);
+    const onAssign = async ({userId}) => {
+        await appDispatch(dispatch, updateGroup({groupId: id, data: {co_owner: userId}}))
     }
-
-
-  
 
     return (
         <div>
             <div className="row">
                 <div className="col-md-12">
-                    <h4 className="mb-4">Personal Information</h4>
+                    <h4 className="mb-4"> {"Group > " + group?.name}</h4>
                     <div className="appointment-tab">
                         <Tabs activeKey={key}
                             onSelect={(k) => {
@@ -130,16 +97,30 @@ const GroupDetail = () => {
                                 onChangeTab(k);
                             }}
                             id="uncontrolled-tab-example">
-                            <Tab eventKey="profile" title="Profile">
+
+                            <Tab eventKey="members" title="Members">
+                                <div className="card card-table mb-0">
+                                    <div className="card-body">
+                                        <div className="table-responsive">
+                                            {group ? (<ReactTable
+                                                group={group}
+                                                data={group?.members}
+                                                columns={columns}
+                                                onRowClick={() => { }}
+                                                onKick={({userId}) => onKick({userId})}
+                                                onAssign={({userId}) => onAssign({userId})}
+                                            />) : null}
+                                        </div>
+                                    </div>
+                                </div>
+                            </Tab>
+
+                            <Tab eventKey="invite" title="Invite">
                                 <div className="card card-table mb-0">
                                     <div className="card-body">
                                         <Formik
                                             initialValues={{
-                                                email: user.email ? user.email : "",
-                                                first_name: user.first_name ? user.first_name : "",
-                                                last_name: user.last_name ? user.last_name : "",
-                                                date_of_birth: user.date_of_birth ? user.date_of_birth : "",
-                                                id: user.id ? user.id : ""
+                                                email: "",
                                             }}
                                             validate={values => {
                                                 const errors = {};
@@ -150,19 +131,13 @@ const GroupDetail = () => {
                                                 ) {
                                                     errors.email = 'Invalid email address';
                                                 }
-                                                if (!values.first_name)
-                                                    errors.first_name = 'Required';
-                                                if (!values.last_name)
-                                                    errors.last_name = 'Required';
-                                                if (!values.date_of_birth)
-                                                    errors.date_of_birth = 'Required';
+
                                                 return errors;
                                             }}
                                             onSubmit={(values, { setSubmitting }) => {
                                                 const func = async () => {
                                                     setSubmitting(false);
-                                                    await appDispatch(dispatch, updateUser(values));
-                                                    await appDispatch(dispatch, getUserInfo({}));
+                                                    await appDispatch(dispatch, inviteMember({ email: values.email, groupId: id }))
                                                 }
                                                 func();
                                             }}
@@ -177,106 +152,23 @@ const GroupDetail = () => {
                                                 isSubmitting,
                                             }) => (
                                                 <form onSubmit={handleSubmit} className="row form-row pl-5 pr-5 pt-4">
-                                                    <div className="col-12 col-md-6">
+                                                    <div className="col-12 col-md-12">
                                                         <div className="form-group">
                                                             <label>Email* {errors.email && touched.email ? <strong className='text-danger'>({errors.email})</strong> : ""}</label>
                                                             <input
                                                                 type="email"
                                                                 name="email"
-                                                                // onChange={handleChange}
+                                                                onChange={handleChange}
                                                                 onBlur={handleBlur}
                                                                 value={values.email}
                                                                 className="form-control"
-                                                                readOnly={true}
                                                             />
                                                         </div>
                                                     </div>
-                                                    <div className="col-12 col-md-6">
-                                                        <div className="form-group">
-                                                            <label>Last login</label>
-                                                            <input
-                                                                type="text"
-                                                                value={new Date(user.last_login).toLocaleDateString()}
-                                                                className="form-control"
-                                                                readOnly={true}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                    <div className="col-12 col-md-6">
-                                                        <div className="form-group">
-                                                            <label>First name* {errors.first_name && touched.first_name ? <strong className='text-danger'>({errors.first_name})</strong> : ""}</label>
-                                                            <input
-                                                                type="text"
-                                                                name="first_name"
-                                                                onChange={handleChange}
-                                                                onBlur={handleBlur}
-                                                                value={values.first_name}
-                                                                className="form-control"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                    <div className="col-12 col-md-6">
-                                                        <div className="form-group">
-                                                            <label>Last name* {errors.last_name && touched.last_name ? <strong className='text-danger'>({errors.last_name})</strong> : ""}</label>
-                                                            <input
-                                                                type="text"
-                                                                name="last_name"
-                                                                onChange={handleChange}
-                                                                onBlur={handleBlur}
-                                                                value={values.last_name}
-                                                                className="form-control"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                    <div className="col-12 col-md-6">
-                                                        <div className="form-group">
-                                                            <label>Date of birth* {errors.date_of_birth && touched.date_of_birth ? <strong className='text-danger'>({errors.date_of_birth})</strong> : ""}</label>
-                                                            <input
-                                                                type="date"
-                                                                name="date_of_birth"
-                                                                onChange={handleChange}
-                                                                onBlur={handleBlur}
-                                                                value={values.date_of_birth}
-                                                                className="form-control"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                    {/* <div className="col-12 col-md-6">
-                                                        <div className="form-group">
-                                                            <label>Level</label>
-                                                            <input
-                                                                type='text'
-                                                                value={user.level}
-                                                                className="form-control"
-                                                                readOnly={true}
-                                                            />
-                                                        </div>
-                                                    </div> */}
-                                                    {/* <div className="col-12 col-md-6">
-                                                        <div className="form-group">
-                                                            <label>Position</label>
-                                                            <input
-                                                                type='text'
-                                                                value={user.position}
-                                                                className="form-control"
-                                                                readOnly={true}
-                                                            />
-                                                        </div>
-                                                    </div> */}
-                                                    <div className="col-12 col-md-6">
-                                                        <div className="form-group">
-                                                            <label>Email Verified</label>
-                                                            <input
-                                                                type='text'
-                                                                value={user.email_verified}
-                                                                className="form-control"
-                                                                readOnly={true}
-                                                            />
-                                                        </div>
-                                                    </div>
+
                                                     <div className="submit-section text-center mb-3">
                                                         <button type="submit" disabled={isSubmitting} className="btn btn-primary submit-btn">
-                                                            Update
+                                                            Invite
                                                         </button>
                                                     </div>
                                                 </form>
@@ -285,20 +177,7 @@ const GroupDetail = () => {
                                     </div>
                                 </div>
                             </Tab>
-                            <Tab eventKey="project" title="Project">
-                                <div className="card card-table mb-0">
-                                    <div className="card-body">
-                                        <div className="table-responsive">
-                                            <ReactTable
-                                                data={groups}
-                                                columns={columns}
-                                                onRowClick={onProjectClick}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </Tab>
-                            
+
                         </Tabs>
                     </div>
                 </div>

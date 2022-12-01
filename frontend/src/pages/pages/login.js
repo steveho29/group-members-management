@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useHistory } from "react-router-dom";
 
-// Import Image
-import LoginImg from "../../assets/img/login-banner.png";
 
 // Import Icons
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -14,7 +12,7 @@ import { appDispatch } from "../../store/appDispatch";
 
 import { toastifyAction } from "../../store/toastifySlice";
 import { login } from "../../store/authSlice";
-
+import useFetch from './useFetch'
 const Login = () => {
   const { isAuth } = useSelector(state => state.auth)
   const [email, setEmail] = useState("");
@@ -38,6 +36,31 @@ const Login = () => {
     if (isAuth) history.push({ pathname: '/dashboard' })
   }, [])
 
+  const { handleGoogle, loading, error } = useFetch(
+    process.env.REACT_APP_API + '/oauth/google'
+  );
+ 
+
+  useEffect(() => {
+    /* global google */
+    if (window.google) {
+      google.accounts.id.initialize({
+        client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
+        callback: handleGoogle,
+      });
+
+      google.accounts.id.renderButton(document.getElementById("googleLogin"), {
+        // type: "standard",
+        theme: "filled_black",
+        // size: "small",
+        text: "signin_with",
+        shape: "pill",
+      });
+
+      // google.accounts.id.prompt()
+    }
+  }, [handleGoogle]);
+
   return (
     <div>
       {/* Page Content */}
@@ -52,7 +75,7 @@ const Login = () => {
                     <div className="col-md-12 col-lg-6 login-right">
                       <div className="login-header">
                         <h3>
-                          Login 
+                          Login
                         </h3>
                       </div>
                       <form action="/">
@@ -99,16 +122,17 @@ const Login = () => {
                             Login
                           </Link>
                         </div>
-                        <div className="col-6">
-                          <Link to="#" className="btn btn-google btn-block">
+                        <div className="col-6" >
+                          <div id='googleLogin'></div>
+                          {/* <Link to="#" className="btn btn-google btn-block">
                             <FontAwesomeIcon icon={faGoogle} className="mr-1" />{" "}
                             Login
-                          </Link>
+                          </Link> */}
                         </div>
                       </div>
                       <div className="text-center dont-have">
                         Don’t have an account?{" "}
-                        <Link to="#">Register</Link>
+                        <Link to="/register">Register</Link>
                       </div>
                     </div>
                   </div>

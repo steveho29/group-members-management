@@ -32,6 +32,30 @@ const getAllGroups = createAsyncThunk(
   }
 );
 
+const getJoinedGroups = createAsyncThunk(
+  "getJoinedGroups",
+  async ({ user_id }, thunkAPI) => {
+    thunkAPI.dispatch(setIsLoading(true));
+    try {
+      const { data } = await axiosAPI.get(`${modulePrefix}/?user=${user_id}`);
+      return data.results;
+    } catch (error) {
+      var errorMsg = "";
+      if (error.response?.data) {
+        const { detail, message } = error.response.data;
+        errorMsg = detail || message;
+      } else errorMsg = error.message || error.msg || error.error || error;
+      thunkAPI.dispatch(
+        toastifyAction.setMessage({
+          message: errorMsg.toString(),
+          type: "error",
+        })
+      );
+      return thunkAPI.rejectWithValue();
+    }
+  }
+);
+
 const deleteGroup = createAsyncThunk(
   "deleteProject",
   async ({ id }, thunkAPI) => {
@@ -68,6 +92,9 @@ const createGroup = createAsyncThunk(
           "Content-Type": "multipart/form-data",
         },
       });
+      thunkAPI.dispatch(
+        toastifyAction.setMessage({ message: "Group Created", type: "success" })
+      );
       return '';
     } catch (error) {
       var errorMsg = "";
@@ -88,10 +115,13 @@ const createGroup = createAsyncThunk(
 
 const updateGroup = createAsyncThunk(
   "updateProject",
-  async (data, thunkAPI) => {
+  async ({groupId, data}, thunkAPI) => {
     thunkAPI.dispatch(setIsLoading(true));
     try {
-      await axiosAPI.put(`${modulePrefix}/${data.id}/`, data);
+      await axiosAPI.put(`${modulePrefix}/${groupId}/`, data);
+      thunkAPI.dispatch(
+        toastifyAction.setMessage({ message: "Group Updated", type: "success" })
+      );
       return '';
     } catch (error) {
       var errorMsg = "";
@@ -112,12 +142,13 @@ const updateGroup = createAsyncThunk(
 
 const inviteMember = createAsyncThunk(
   "inviteMember",
-  async (data, thunkAPI) => {
+  async ({ groupId, email }, thunkAPI) => {
     thunkAPI.dispatch(setIsLoading(true));
     try {
-      const groupId = data.id;
-      delete data.id;
-      await axiosAPI.post(`${modulePrefix}/${groupId}/invite/`, data);
+      const { data } = await axiosAPI.post(`${modulePrefix}/${groupId}/invite/`, { email });
+      thunkAPI.dispatch(
+        toastifyAction.setMessage({ message: data.msg, type: "success" })
+      );
       return "";
     } catch (error) {
       var errorMsg = "";
@@ -138,11 +169,13 @@ const inviteMember = createAsyncThunk(
 
 const kickMember = createAsyncThunk(
   "kickMember",
-  async (data, thunkAPI) => {
+  async ({ groupId, id }, thunkAPI) => {
     thunkAPI.dispatch(setIsLoading(true));
     try {
-      await axiosAPI.delete(`${modulePrefix}/${data.projectId}/contributors/?id_emp=${data.id_emp}`);
-      // await axiosAPI_8102.delete(`${modulePrefix}/${data.projectId}/contributors/?id_emp=${data.id_emp}`);
+      await axiosAPI.delete(`${modulePrefix}/${groupId}/kick/?user=${id}`);
+      thunkAPI.dispatch(
+        toastifyAction.setMessage({ message: 'Member Kicked', type: "success" })
+      );
       return "";
     } catch (error) {
       var errorMsg = "";
@@ -161,7 +194,7 @@ const kickMember = createAsyncThunk(
   }
 );
 
-const initialState = { groups: [] };
+const initialState = { groups: [], joinedGroups: [] };
 
 
 export const groupSlice = createSlice({
@@ -173,6 +206,9 @@ export const groupSlice = createSlice({
     builder.addCase(getAllGroups.fulfilled, (state, action) => {
       state.groups = action.payload;
     });
+    builder.addCase(getJoinedGroups.fulfilled, (state, action) => {
+      state.joinedGroups = action.payload;
+    });
   },
 });
 
@@ -180,6 +216,7 @@ export const userActions = groupSlice.actions;
 
 export {
   getAllGroups,
+  getJoinedGroups,
   inviteMember,
   kickMember,
   createGroup,
